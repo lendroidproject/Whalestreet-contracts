@@ -1,0 +1,51 @@
+{
+  "name": "whalestreet-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for Whalestreet",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "3.2.1-solc-0.7"
+  },
+  "peerDependencies": {
+    "@truffle/contract": "4.2.24",
+    "@codechecks/client": "0.1.10"
+  },
+  "devDependencies": {
+    "@openzeppelin/test-helpers": "0.5.6",
+    "solc": "0.7.3",
+    "ganache-time-traveler": "1.0.15",
+    "solidity-coverage": "0.7.10",
+    "dotenv": "8.2.0",
+    "eth-gas-reporter": "0.2.17",
+    "husky": "4.3.0",
+    "npm-run-all": "4.1.5",
+    "linebyline": "1.3.0",
+    "solhint": "3.2.1",
+    "truffle-flattener": "1.5.0",
+    "truffle": "5.1.47"
+  },
+  "scripts": {
+    "build": "run-s build:*",
+    "build:contracts": "rm -f build/contracts/*;./node_modules/truffle/build/cli.bundled.js compile",
+    "test": "run-s lint:js lint:sol build:* test:*",
+    "test:contracts": "./node_modules/truffle/build/cli.bundled.js test && cat build/eth-gas-report.txt | tee build/contracts-eth-gas-report.txt",
+    "test-coverage": "./node_modules/truffle/build/cli.bundled.js run coverage",
+    "lint": "run-s lint:*",
+    "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
+    "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
+    "lint:tests": "grep -FR .only test || exit 0 && echo '✘ You have focused test.' && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lendroidproject/Whalestreet-contracts.git"
+  },
+  "author": "Lendroid Foundation",
+  "license": "Lendroid : https://github.com/lendroidproject/protocol.2.0/blob/master/LICENSE.md",
+  "bugs": {
+    "url": "https://github.com/lendroidproject/Whalestreet-contracts/issues"
+  },
+  "homepage": "https://github.com/lendroidproject/Whalestreet-contracts#readme"
+}

@@ -1,0 +1,10 @@
+__pycache__
+.history
+build/
+reports/
+node_modules/
+*.DS_Store
+coverage/
+coverage.*
+package-lock.json
+.solcover.js
