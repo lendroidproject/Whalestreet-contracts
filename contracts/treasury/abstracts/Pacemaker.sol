@@ -9,7 +9,7 @@ abstract contract Pacemaker {
     using SafeMath for uint256;
 
     // uint256 constant HEARTBEATSTARTTIME = 1609459200;// 2021-01-01 00:00:00 (UTC UTC +00:00)
-    uint256 constant HEARTBEATSTARTTIME = 1602316800;// 2020-10-10 08:00:00 (UTC UTC +00:00)
+    uint256 constant HEARTBEATSTARTTIME = 1602288000;// 2020-10-10 00:00:00 (UTC UTC +00:00)
     uint256 constant EPOCHPERIOD = 28800;// 8 hours
     uint256 constant WARMUPPERIOD = 2419200;// 28 days
 
