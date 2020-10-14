@@ -17,7 +17,7 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     mapping(address => uint256) public lastEpochStaked;
     mapping(address => uint256) public lastEpochRewardsClaimed;
 
-    uint256 public starttime = 1607040000;// 2020-12-04 00:00:00 (UTC UTC +00:00)
+    uint256 public starttime = HEARTBEATSTARTTIME;// 2020-12-04 00:00:00 (UTC UTC +00:00)
 
     event Staked(address indexed user, uint256 amount);
     event Unstaked(address indexed user, uint256 amount);
