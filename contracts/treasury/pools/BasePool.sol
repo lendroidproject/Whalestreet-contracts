@@ -10,7 +10,7 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     string public poolName;
-    IERC20 public poolToken;
+    IERC20 public rewardToken;
 
     mapping(uint256 => uint256) private _totalBalancesPerEpoch;
     mapping(address => mapping(uint256 => uint256)) private _balancesPerEpoch;
@@ -23,9 +23,9 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     event Unstaked(address indexed user, uint256 amount);
     event RewardClaimed(address indexed user, uint256 reward);
 
-    constructor(string memory name, address poolTokenAddress, address lpTokenAddress) LPTokenWrapper(lpTokenAddress) {
+    constructor(string memory name, address rewardTokenAddress, address lpTokenAddress) LPTokenWrapper(lpTokenAddress) {
+        rewardToken = IERC20(rewardTokenAddress);
         poolName = name;
-        poolToken = IERC20(poolTokenAddress);
     }
 
     modifier checkStart(){
@@ -74,7 +74,7 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
             lastEpochRewardsClaimed[msg.sender] = _currentEpoch();
-            poolToken.safeTransfer(msg.sender, reward);
+            rewardToken.safeTransfer(msg.sender, reward);
             emit RewardClaimed(msg.sender, reward);
         }
     }

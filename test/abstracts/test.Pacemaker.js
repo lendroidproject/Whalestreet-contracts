@@ -25,7 +25,7 @@ contract("Pacemaker", (accounts) => {
   describe('currentEpoch', () => {
 
     it('check currentEpoch', async () => {
-      assert.equal(14, await pacemaker.currentEpoch(), "currentEpoch is incorrect")
+      assert.equal(17, await pacemaker.currentEpoch(), "currentEpoch is incorrect")
     })
   })
 });

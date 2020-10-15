@@ -10,10 +10,6 @@ contract UNIV2SHRIMPPool is BasePool {
 
     uint256 public constant HALFLIFE = 7257600;// 84 days
 
-    mapping(uint256 => uint256) public rewardsPerEpochSeries;
-    uint256 public rewardsInCurrentEpochSeries;
-
-
     constructor(address poolTokenAddress, address lpTokenAddress)
         BasePool("UNIV2SHRIMPPool", poolTokenAddress, lpTokenAddress) {
     }
@@ -41,7 +37,11 @@ contract UNIV2SHRIMPPool is BasePool {
             totalRewards = 1350000 * (10 ** 18);// 1.35 M
         }
 
-        return (epoch == 0) ? totalRewards : totalRewards.div(HALFLIFE.mul(3));
+        return (epoch == 0) ?
+          totalRewards :
+          (epoch > 0 && epoch <= 84) ?
+          totalRewards.div(HALFLIFE.mul(3)) :
+          totalRewards.div(HALFLIFE.mul(9));
     }
 
 }
