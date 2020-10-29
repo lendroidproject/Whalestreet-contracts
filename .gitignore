@@ -8,3 +8,5 @@ coverage/
 coverage.*
 package-lock.json
 .solcover.js
+
+artifacts/

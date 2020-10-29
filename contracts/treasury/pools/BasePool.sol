@@ -57,16 +57,17 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
         claim();
     }
 
-    function earned(address account)  public view returns (uint256 earnings) {
-        earnings = 0;
+    function earned(address account) public view returns (uint256) {
+        uint256 earnings = 0;
         if (lastEpochStaked[msg.sender] > 0) {
             uint256 rewardPerEpoch = 0;
             for (uint256 epoch = lastEpochRewardsClaimed[account]; epoch < _currentEpoch(); epoch++) {
-                rewardPerEpoch = _balancesPerEpoch[account][epoch].mul(totalRewardsInEpoch(epoch)).div(_totalBalancesPerEpoch[epoch]);
-                earnings = earnings.add(rewardPerEpoch);
+                if (_totalBalancesPerEpoch[epoch] > 0) {
+                    rewardPerEpoch = _balancesPerEpoch[account][epoch].mul(totalRewardsInEpoch(epoch)).div(_totalBalancesPerEpoch[epoch]);
+                    earnings = earnings.add(rewardPerEpoch);
+                }
             }
         }
-
         return earnings;
     }
 
