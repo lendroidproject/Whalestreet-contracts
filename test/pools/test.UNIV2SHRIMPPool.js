@@ -1,6 +1,15 @@
-const { expectRevert, time } = require('@openzeppelin/test-helpers')
 const timeMachine = require('ganache-time-traveler');
 
+const {
+  BN,           // Big Number support
+  constants,    // Common constants, like the zero address and largest integers
+  expectEvent,  // Assertions for emitted events
+  expectRevert, // Assertions for transactions that should fail
+  time,         // Converts to Time
+  ether,        // Converts to ether
+} = require('@openzeppelin/test-helpers');
+
+const { expect } = require('chai');
 
 contract("UNIV2SHRIMPPool", (accounts) => {
 
@@ -34,33 +43,33 @@ contract("UNIV2SHRIMPPool", (accounts) => {
 
     before(async () => {
       // Mint .1 Lp token to the tester
-      await lpToken.mint(tester, '100000000000000000');
+      await lpToken.mint(tester, ether("0.1"));
       // Mint 240,000,000 reward token to the pool contract
-      await rewardToken.mint(pool.address, '240000000000000000000000000');
+      await rewardToken.mint(pool.address, ether("240000000"));
     })
 
     it('it succeeds', async () => {
-      await lpToken.approve(pool.address, '10000000000000000', {from: tester})
-      assert.equal('100000000000000000', await lpToken.balanceOf(tester), "invalid balanceOf lpToken for tester")
-      assert.equal(0, await pool.totalSupply(), "totalSupply of pool is incorrect")
-      assert.equal(0, await pool.balanceOf(tester), "staked amount of tester is incorrect")
+      await lpToken.approve(pool.address, ether("0.1"), {from: tester})
+      expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.1"));
+      expect(await pool.totalSupply()).to.be.bignumber.equal("0");
+      expect(await pool.balanceOf(tester)).to.be.bignumber.equal("0");
       // Stake .01 Lp token to the tester
-      await pool.stake('10000000000000000', {from: tester})
-      assert.equal('90000000000000000', await lpToken.balanceOf(tester), "invalid balanceOf lpToken for tester")
-      assert.equal('10000000000000000', await pool.totalSupply(), "totalSupply of pool is incorrect")
-      assert.equal('10000000000000000', await pool.balanceOf(tester), "staked amount of tester is incorrect")
+      await pool.stake(ether("0.01"), {from: tester})
+      expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.09"));
+      expect(await pool.totalSupply()).to.be.bignumber.equal(ether("0.01"));
+      expect(await pool.balanceOf(tester)).to.be.bignumber.equal(ether("0.01"));
     })
   })
 
   describe('earned', () => {
 
     it('it returns correct earnings', async () => {
-      assert.equal(17, await pool.currentEpoch(), "currentEpoch is incorrect")
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("59");
       let snapshot = await timeMachine.takeSnapshot()
       snapshotId = snapshot['result']
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
-      assert.equal(18, await pool.currentEpoch(), "currentEpoch is incorrect")
-      assert.equal(await pool.earned(tester), "1", "earnings are incorrect")
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("60");
+      expect(await pool.earned(tester)).to.be.bignumber.equal("1");
       await timeMachine.revertToSnapshot(snapshotId);
     })
   })
@@ -68,14 +77,14 @@ contract("UNIV2SHRIMPPool", (accounts) => {
   describe('unstake', () => {
 
     it('it succeeds', async () => {
-      assert.equal(18, await pool.currentEpoch(), "currentEpoch is incorrect")
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("60");
       let snapshot = await timeMachine.takeSnapshot()
       snapshotId = snapshot['result']
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
-      assert.equal(19, await pool.currentEpoch(), "currentEpoch is incorrect")
-      assert.equal('90000000000000000', await lpToken.balanceOf(tester), "invalid balanceOf lpToken for tester")
-      await pool.unstake('10000000000000000', {from: tester})
-      assert.equal('100000000000000000', await lpToken.balanceOf(tester), "invalid balanceOf lpToken for tester")
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("61");
+      expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.09"));
+      await pool.unstake(ether("0.01"), {from: tester})
+      expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.1"));
       await timeMachine.revertToSnapshot(snapshotId);
     })
   })
@@ -83,14 +92,14 @@ contract("UNIV2SHRIMPPool", (accounts) => {
   describe('claim', () => {
 
     it('it succeeds', async () => {
-      assert.equal(18, await pool.currentEpoch(), "currentEpoch is incorrect")
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("60");
       let snapshot = await timeMachine.takeSnapshot()
       snapshotId = snapshot['result']
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
-      assert.equal(19, await pool.currentEpoch(), "currentEpoch is incorrect")
-      assert.equal(0, await rewardToken.balanceOf(tester), "invalid balanceOf rewardToken for tester")
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("61");
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
       await pool.claim({from: tester})
-      assert.equal(0, await rewardToken.balanceOf(tester), "invalid balanceOf rewardToken for tester")
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
       await timeMachine.revertToSnapshot(snapshotId);
     })
   })

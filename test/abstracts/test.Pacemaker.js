@@ -1,4 +1,13 @@
-const { expectRevert, time } = require('@openzeppelin/test-helpers')
+
+const {
+  BN,           // Big Number support
+  constants,    // Common constants, like the zero address and largest integers
+  expectEvent,  // Assertions for emitted events
+  expectRevert, // Assertions for transactions that should fail
+  time,
+} = require('@openzeppelin/test-helpers');
+
+const { expect } = require('chai');
 
 contract("Pacemaker", (accounts) => {
 
@@ -25,7 +34,9 @@ contract("Pacemaker", (accounts) => {
   describe('currentEpoch', () => {
 
     it('check currentEpoch', async () => {
-      assert.equal(17, await pacemaker.currentEpoch(), "currentEpoch is incorrect")
+      // assert.equal(59, await pacemaker.currentEpoch(), "currentEpoch is incorrect")
+      expect(await pacemaker.currentEpoch())
+      .to.be.bignumber.equal("59");
     })
   })
 });
