@@ -1,3 +1,4 @@
+const timeMachine = require('ganache-time-traveler');
 
 const {
   BN,           // Big Number support
@@ -14,6 +15,8 @@ contract("Pacemaker", (accounts) => {
   const MockPacemaker = artifacts.require("MockPacemaker");
 
   const owner = accounts[0]
+
+  const EPOCHPERIOD = 28800
 
   let pacemaker
 
@@ -32,8 +35,23 @@ contract("Pacemaker", (accounts) => {
 
   describe('currentEpoch', () => {
 
-    it('check currentEpoch', async () => {
+    beforeEach(async() => {
+        expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("62");
+        let snapshot = await timeMachine.takeSnapshot()
+        snapshotId = snapshot['result']
+    });
+
+    afterEach(async() => {
+        await timeMachine.revertToSnapshot(snapshotId);
+    });
+
+    it('check currentEpoch after starttime', async () => {
       expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("62");
+    })
+
+    it('check currentEpoch before starttime', async () => {
+      await timeMachine.advanceTimeAndBlock(EPOCHPERIOD * -62)
+      expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("0");
     })
   })
 });
