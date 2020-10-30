@@ -14,7 +14,6 @@ contract("Pacemaker", (accounts) => {
   const MockPacemaker = artifacts.require("MockPacemaker");
 
   const owner = accounts[0]
-  const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
   let pacemaker
 
