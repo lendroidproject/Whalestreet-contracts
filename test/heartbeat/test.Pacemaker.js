@@ -36,7 +36,7 @@ contract("Pacemaker", (accounts) => {
   describe('currentEpoch', () => {
 
     beforeEach(async() => {
-        expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("62");
+        expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("63");
         let snapshot = await timeMachine.takeSnapshot()
         snapshotId = snapshot['result']
     });
@@ -46,11 +46,11 @@ contract("Pacemaker", (accounts) => {
     });
 
     it('check currentEpoch after starttime', async () => {
-      expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("62");
+      expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("63");
     })
 
     it('check currentEpoch before starttime', async () => {
-      await timeMachine.advanceTimeAndBlock(EPOCHPERIOD * -62)
+      await timeMachine.advanceTimeAndBlock(EPOCHPERIOD * -63)
       expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("0");
     })
   })

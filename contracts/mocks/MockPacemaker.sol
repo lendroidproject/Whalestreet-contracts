@@ -3,7 +3,7 @@ pragma solidity 0.7.3;
 
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../treasury/abstracts/Pacemaker.sol";
+import "../heartbeat/Pacemaker.sol";
 
 
 contract MockPacemaker is Pacemaker, Ownable {}

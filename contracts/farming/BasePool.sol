@@ -2,8 +2,8 @@
 pragma solidity 0.7.3;
 
 import "@openzeppelin/contracts/math/Math.sol";
-import "../abstracts/Pacemaker.sol";
-import "../wrappers/LPTokenWrapper.sol";
+import "../heartbeat/Pacemaker.sol";
+import "./LPTokenWrapper.sol";
 
 
 abstract contract BasePool is LPTokenWrapper, Pacemaker {
