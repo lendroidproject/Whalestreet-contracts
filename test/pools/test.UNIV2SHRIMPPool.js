@@ -126,7 +126,7 @@ contract("UNIV2SHRIMPPool", (accounts) => {
     it('it succeeds', async () => {
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
       expect(await pool.currentEpoch()).to.be.bignumber.equal("63");
-      // expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
+      expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
       expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
       await pool.claim({from: tester})
       expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
@@ -153,7 +153,7 @@ contract("UNIV2SHRIMPPool", (accounts) => {
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
       expect(await pool.currentEpoch()).to.be.bignumber.equal("63");
       expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.09"));
-      // expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
+      expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
       expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
       await pool.unstakeAndClaim({from: tester})
       expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.1"));
