@@ -46,61 +46,131 @@ contract("UNIV2SHRIMPPool", (accounts) => {
       await lpToken.mint(tester, ether("0.1"));
       // Mint 240,000,000 reward token to the pool contract
       await rewardToken.mint(pool.address, ether("240000000"));
+      // Approve .1 Lp token to the Pool from tester
+      await lpToken.approve(pool.address, ether("0.1"), {from: tester})
     })
 
     it('it succeeds', async () => {
-      await lpToken.approve(pool.address, ether("0.1"), {from: tester})
       expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.1"));
       expect(await pool.totalSupply()).to.be.bignumber.equal("0");
       expect(await pool.balanceOf(tester)).to.be.bignumber.equal("0");
       // Stake .01 Lp token to the tester
-      await pool.stake(ether("0.01"), {from: tester})
+      const txReceipt = await pool.stake(ether("0.01"), {from: tester})
+      expectEvent(txReceipt, 'Staked', {
+        user: tester,
+        amount: ether("0.01"),
+      });
       expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.09"));
       expect(await pool.totalSupply()).to.be.bignumber.equal(ether("0.01"));
       expect(await pool.balanceOf(tester)).to.be.bignumber.equal(ether("0.01"));
     })
-  })
 
-  describe('earned', () => {
-
-    it('it returns correct earnings', async () => {
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("59");
-      let snapshot = await timeMachine.takeSnapshot()
-      snapshotId = snapshot['result']
-      await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("60");
-      expect(await pool.earned(tester)).to.be.bignumber.equal("1");
-      await timeMachine.revertToSnapshot(snapshotId);
+    it('fails when stake amount is 0', async () => {
+      // Conditions that trigger a require statement can be precisely tested
+      await expectRevert(
+        pool.stake(ether("0"), {from: tester}),
+        'Cannot stake 0',
+      );
     })
   })
 
   describe('unstake', () => {
 
-    it('it succeeds', async () => {
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("60");
+    beforeEach(async() => {
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("62");
       let snapshot = await timeMachine.takeSnapshot()
       snapshotId = snapshot['result']
+    });
+
+    afterEach(async() => {
+      await timeMachine.revertToSnapshot(snapshotId);
+    });
+
+    it('fails when unstake amount is 0', async () => {
+      // Conditions that trigger a require statement can be precisely tested
+      await expectRevert(
+        pool.unstake(ether("0"), {from: tester}),
+        'Cannot unstake 0',
+      );
+    })
+
+    it('fails when unstake happens in same epoch as stake', async () => {
+      // Conditions that trigger a require statement can be precisely tested
+      await expectRevert(
+        pool.unstake(ether("0.01"), {from: tester}),
+        'Cannot unstake if staked during current epoch.',
+      );
+    })
+
+    it('it succeeds', async () => {
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("61");
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("63");
       expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.09"));
       await pool.unstake(ether("0.01"), {from: tester})
       expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.1"));
-      await timeMachine.revertToSnapshot(snapshotId);
     })
   })
 
   describe('claim', () => {
 
-    it('it succeeds', async () => {
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("60");
+    beforeEach(async() => {
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("62");
       let snapshot = await timeMachine.takeSnapshot()
       snapshotId = snapshot['result']
+    });
+
+    afterEach(async() => {
+      await timeMachine.revertToSnapshot(snapshotId);
+    });
+
+    it('it succeeds', async () => {
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("61");
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("63");
+      // expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
       expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
       await pool.claim({from: tester})
-      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
+      // claim again
+      expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0"))
+      await pool.claim({from: tester})
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
+    })
+  })
+
+  describe('unstakeAndClaim', () => {
+
+    beforeEach(async() => {
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("62");
+      let snapshot = await timeMachine.takeSnapshot()
+      snapshotId = snapshot['result']
+    });
+
+    afterEach(async() => {
       await timeMachine.revertToSnapshot(snapshotId);
+    });
+
+    it('it succeeds', async () => {
+      await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
+      expect(await pool.currentEpoch()).to.be.bignumber.equal("63");
+      expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.09"));
+      // expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
+      await pool.unstakeAndClaim({from: tester})
+      expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.1"));
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
+    })
+  })
+
+  describe('totalRewardsInEpoch', () => {
+
+    it('it returns expected values', async () => {
+      expect(await pool.totalRewardsInEpoch(0)).to.be.bignumber.equal(ether("2400000"));
+      expect(await pool.totalRewardsInEpoch(81)).to.be.bignumber.equal(ether("0.551146384479717813"));// 12000000 / (7257600*3)
+      expect(await pool.totalRewardsInEpoch(90)).to.be.bignumber.equal(ether("0.640707671957671957"));// 41850000 / (7257600*9)
+      expect(await pool.totalRewardsInEpoch(350)).to.be.bignumber.equal(ether("0.165343915343915343"));// 10800000 / (7257600*9)
+      expect(await pool.totalRewardsInEpoch(650)).to.be.bignumber.equal(ether("0.082671957671957671"));// 5400000 / (7257600*9)
+      expect(await pool.totalRewardsInEpoch(1000)).to.be.bignumber.equal(ether("0.041335978835978835"));// 2700000 / (7257600*9)
+      expect(await pool.totalRewardsInEpoch(1200)).to.be.bignumber.equal(ether("0.020667989417989417"));// 1350000 / (7257600*9)
     })
   })
 });

@@ -34,9 +34,7 @@ contract("Pacemaker", (accounts) => {
   describe('currentEpoch', () => {
 
     it('check currentEpoch', async () => {
-      // assert.equal(59, await pacemaker.currentEpoch(), "currentEpoch is incorrect")
-      expect(await pacemaker.currentEpoch())
-      .to.be.bignumber.equal("59");
+      expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("62");
     })
   })
 });
