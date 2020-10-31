@@ -52,6 +52,12 @@ module.exports = {
   // Set default mocha options here, use special reporters etc.
   mocha: {
     // timeout: 100000
+    reporter: 'eth-gas-reporter',
+    reporterOptions : {
+        outputFile: "build/eth-gas-report.txt",
+        // currency: 'USD',
+        noColors: true,
+    } // See options below
   },
 
   // Configure your compilers
