@@ -6,4 +6,5 @@ You need Truffle and ganachi-cli.
 git clone https://github.com/lendroidproject/Whalestreet-contracts.git
 
 cd Whalestreet-contracts
+
 npm install
