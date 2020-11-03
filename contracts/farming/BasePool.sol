@@ -38,16 +38,16 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public checkStart override {
         require(amount > 0, "Cannot stake 0");
-        _balancesPerEpoch[msg.sender][_currentEpoch()] = _balancesPerEpoch[msg.sender][_currentEpoch()].add(amount);
-        _totalBalancesPerEpoch[_currentEpoch()] = _totalBalancesPerEpoch[_currentEpoch()].add(amount);
-        lastEpochStaked[msg.sender] = _currentEpoch();
+        _balancesPerEpoch[msg.sender][currentEpoch()] = _balancesPerEpoch[msg.sender][currentEpoch()].add(amount);
+        _totalBalancesPerEpoch[currentEpoch()] = _totalBalancesPerEpoch[currentEpoch()].add(amount);
+        lastEpochStaked[msg.sender] = currentEpoch();
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
 
     function unstake(uint256 amount) public checkStart override {
         require(amount > 0, "Cannot unstake 0");
-        require(lastEpochStaked[msg.sender] < _currentEpoch(), "Cannot unstake if staked during current epoch.");
+        require(lastEpochStaked[msg.sender] < currentEpoch(), "Cannot unstake if staked during current epoch.");
         super.unstake(amount);
         emit Unstaked(msg.sender, amount);
     }
@@ -62,7 +62,7 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
         earnings = 0;
         if (lastEpochStaked[account] > 0) {
             uint256 rewardPerEpoch = 0;
-            for (uint256 epoch = lastEpochRewardsClaimed[account]; epoch < _currentEpoch(); epoch++) {
+            for (uint256 epoch = lastEpochRewardsClaimed[account]; epoch < currentEpoch(); epoch++) {
                 if (_totalBalancesPerEpoch[epoch] > 0) {
                     rewardPerEpoch = _balancesPerEpoch[account][epoch].mul(totalRewardsInEpoch(epoch)).div(_totalBalancesPerEpoch[epoch]);
                     earnings = earnings.add(rewardPerEpoch);
@@ -74,7 +74,7 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     function claim() public checkStart {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
-            lastEpochRewardsClaimed[msg.sender] = _currentEpoch();
+            lastEpochRewardsClaimed[msg.sender] = currentEpoch();
             rewardToken.safeTransfer(msg.sender, reward);
             emit RewardClaimed(msg.sender, reward);
         }

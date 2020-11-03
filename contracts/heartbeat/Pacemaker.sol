@@ -13,15 +13,23 @@ abstract contract Pacemaker {
     uint256 constant EPOCHPERIOD = 28800;// 8 hours
     uint256 constant WARMUPPERIOD = 2419200;// 28 days
 
-    function _currentEpoch() view internal returns (uint256) {
-        if (block.timestamp > HEARTBEATSTARTTIME) {
-            return block.timestamp.sub(HEARTBEATSTARTTIME).div(EPOCHPERIOD).add(1);
+    function epochFromTimestamp(uint256 timestamp) pure public returns (uint256) {
+        if (timestamp > HEARTBEATSTARTTIME) {
+            return timestamp.sub(HEARTBEATSTARTTIME).div(EPOCHPERIOD).add(1);
         }
         return 0;
     }
 
-    function currentEpoch() view external returns (uint256) {
-        return _currentEpoch();
+    function epochStartTimeFromTimestamp(uint256 timestamp) pure public returns (uint256) {
+        return HEARTBEATSTARTTIME.add(epochFromTimestamp(timestamp).mul(EPOCHPERIOD));
+    }
+
+    function epochEndTimeFromTimestamp(uint256 timestamp) pure public returns (uint256) {
+        return epochStartTimeFromTimestamp(timestamp).add(EPOCHPERIOD);
+    }
+
+    function currentEpoch() view public returns (uint256) {
+        return epochFromTimestamp(block.timestamp);
     }
 
 }
