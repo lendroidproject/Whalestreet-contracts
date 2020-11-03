@@ -2,6 +2,8 @@
 Smart contracts for Whalestreet
 # Prerequisites
 You need Truffle and ganachi-cli. 
+# Installation
+
 # Clone and install
 git clone https://github.com/lendroidproject/Whalestreet-contracts.git
 
