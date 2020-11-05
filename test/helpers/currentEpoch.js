@@ -3,7 +3,7 @@ const currentEpoch = (currentTimestamp) => {
       return 0
   }
     else {
-      return (currentTimestamp - 1602288000 /28800) + 1;
+      return Math.floor((currentTimestamp - 1602288000) /28800) + 1;
       }
   }
   module.exports = currentEpoch;

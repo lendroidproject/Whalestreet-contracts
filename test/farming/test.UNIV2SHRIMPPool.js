@@ -77,9 +77,7 @@ contract("UNIV2SHRIMPPool", (accounts) => {
   describe('unstake', () => {
 
     beforeEach(async() => {
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("73");
-      let snapshot = await timeMachine.takeSnapshot()
-      snapshotId = snapshot['result']
+      snapshotId = (await timeMachine.takeSnapshot())['result']
     });
 
     afterEach(async() => {
@@ -104,7 +102,6 @@ contract("UNIV2SHRIMPPool", (accounts) => {
 
     it('it succeeds', async () => {
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("74");
       expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.09"));
       // Stake .01 Lp token to the tester
       const txReceipt = await pool.unstake(ether("0.01"), {from: tester})
@@ -119,9 +116,7 @@ contract("UNIV2SHRIMPPool", (accounts) => {
   describe('claim', () => {
 
     beforeEach(async() => {
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("73");
-      let snapshot = await timeMachine.takeSnapshot()
-      snapshotId = snapshot['result']
+      snapshotId = (await timeMachine.takeSnapshot())['result']
     });
 
     afterEach(async() => {
@@ -130,7 +125,6 @@ contract("UNIV2SHRIMPPool", (accounts) => {
 
     it('it succeeds', async () => {
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("74");
       expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
       expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
       // Stake .01 Lp token to the tester
@@ -150,9 +144,7 @@ contract("UNIV2SHRIMPPool", (accounts) => {
   describe('unstakeAndClaim', () => {
 
     beforeEach(async() => {
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("73");
-      let snapshot = await timeMachine.takeSnapshot()
-      snapshotId = snapshot['result']
+      snapshotId = (await timeMachine.takeSnapshot())['result']
     });
 
     afterEach(async() => {
@@ -161,7 +153,6 @@ contract("UNIV2SHRIMPPool", (accounts) => {
 
     it('it succeeds', async () => {
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
-      expect(await pool.currentEpoch()).to.be.bignumber.equal("74");
       expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.09"));
       expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
       expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
