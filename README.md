@@ -9,7 +9,7 @@ The farming module consists of 3 main smart contracts:
 3. UNIV2SHRIMPPool.sol
 
 
-All the contracts in this repository have been written in Solidity v0.7.3.
+All the contracts in this repository have been written in Solidity v0.7.4.
 
 Please use Git commits according to this article: https://chris.beams.io/posts/git-commit
 
@@ -43,5 +43,5 @@ Please use Git commits according to this article: https://chris.beams.io/posts/g
   `./node_modules/truffle/build/cli.bundled.js test`
 
 * Run the covergae
-  
+
   `./node_modules/truffle/build/cli.bundled.js run coverage`
