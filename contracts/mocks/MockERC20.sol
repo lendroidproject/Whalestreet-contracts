@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: https://github.com/lendroidproject/protocol.2.0/blob/master/LICENSE.md
-pragma solidity 0.7.3;
+pragma solidity 0.7.4;
 
 
 import "@openzeppelin/contracts/access/Ownable.sol";

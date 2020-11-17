@@ -1,9 +1,19 @@
 // SPDX-License-Identifier: https://github.com/lendroidproject/protocol.2.0/blob/master/LICENSE.md
-pragma solidity 0.7.3;
+pragma solidity 0.7.4;
 
 import "@openzeppelin/contracts/math/Math.sol";
 import "../heartbeat/Pacemaker.sol";
 import "./LPTokenWrapper.sol";
+
+
+/** @title BasePool
+    @author Lendroid Foundation
+    @notice Inherits the LPTokenWrapper contract, performs additional functions
+        on the stake and unstake functions, and includes logic to calculate and
+        withdraw rewards.
+        This contract is inherited by all Pool contracts.
+    @dev Audit certificate : Pending
+*/
 
 
 abstract contract BasePool is LPTokenWrapper, Pacemaker {
@@ -23,19 +33,39 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     event Unstaked(address indexed user, uint256 amount);
     event RewardClaimed(address indexed user, uint256 reward);
 
+    /**
+        @notice Registers the Pool name, Reward Token address, and LP Token address.
+        @param name : Name of the Pool
+        @param rewardTokenAddress : address of the Reward Token
+        @param lpTokenAddress : address of the LP Token
+    */
     constructor(string memory name, address rewardTokenAddress, address lpTokenAddress) LPTokenWrapper(lpTokenAddress) {
         rewardToken = IERC20(rewardTokenAddress);
         poolName = name;
     }
 
+    /**
+        @notice modifier to check if the starttime has been reached
+    */
     modifier checkStart(){
         require(block.timestamp >= starttime,"not start");
         _;
     }
 
+    /**
+        @notice Displays total reward tokens available for a given epoch. This
+        function is implemented in contracts that inherit this contract.
+    */
     function totalRewardsInEpoch(uint256 epoch) virtual pure public returns (uint256 totalRewards);
 
-    // stake visibility is public as overriding LPTokenWrapper's stake() function
+    /**
+        @notice Stake / Deposit LP Token into the Pool.
+        @dev Increases count of total LP Token staked in the current epoch.
+             Increases count of LP Token staked for the caller in the current epoch.
+             Register that caller last staked in the current epoch.
+             Perform actions from BasePool.stake().
+        @param amount : Amount of LP Token to stake
+    */
     function stake(uint256 amount) public checkStart override {
         require(amount > 0, "Cannot stake 0");
         _balancesPerEpoch[msg.sender][_currentEpoch()] = _balancesPerEpoch[msg.sender][_currentEpoch()].add(amount);
@@ -45,6 +75,10 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
         emit Staked(msg.sender, amount);
     }
 
+    /**
+        @notice Unstake / Withdraw staked LP Token from the Pool
+        @inheritdoc LPTokenWrapper
+    */
     function unstake(uint256 amount) public checkStart override {
         require(amount > 0, "Cannot unstake 0");
         require(lastEpochStaked[msg.sender] < _currentEpoch(), "Cannot unstake if staked during current epoch.");
@@ -52,12 +86,21 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
         emit Unstaked(msg.sender, amount);
     }
 
+    /**
+        @notice Unstake the staked LP Token and claim corresponding earnings from the Pool
+        @dev : Perform actions from unstake()
+               Perform actions from claim()
+    */
     function unstakeAndClaim() checkStart external {
         unstake(balanceOf(msg.sender));
         claim();
     }
 
-
+    /**
+        @notice Displays earnings of a given address from previous epochs.
+        @param account : the given user address
+        @return earnings of given address since last withdrawn epoch
+    */
     function earned(address account) public view returns (uint256 earnings) {
         earnings = 0;
         if (lastEpochStaked[account] > 0) {
@@ -71,6 +114,9 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
         }
     }
 
+    /**
+        @notice Transfers earnings from previous epochs to the caller
+    */
     function claim() public checkStart {
         uint256 reward = earned(msg.sender);
         if (reward > 0) {
