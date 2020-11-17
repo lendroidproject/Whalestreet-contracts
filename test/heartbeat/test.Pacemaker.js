@@ -1,4 +1,5 @@
 const timeMachine = require('ganache-time-traveler');
+const currentEpoch = require('../helpers/currentEpoch')
 
 const {
   BN,           // Big Number support
@@ -36,9 +37,7 @@ contract("Pacemaker", (accounts) => {
   describe('currentEpoch', () => {
 
     beforeEach(async() => {
-        expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("74");
-        let snapshot = await timeMachine.takeSnapshot()
-        snapshotId = snapshot['result']
+        snapshotId = (await timeMachine.takeSnapshot())['result']
     });
 
     afterEach(async() => {
@@ -46,11 +45,11 @@ contract("Pacemaker", (accounts) => {
     });
 
     it('check currentEpoch after starttime', async () => {
-      expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("74");
+      expect(await pacemaker.currentEpoch()).to.be.bignumber.equal((currentEpoch(await time.latest())).toString());
     })
 
     it('check currentEpoch before starttime', async () => {
-      await timeMachine.advanceTimeAndBlock(EPOCHPERIOD * -74)
+      await timeMachine.advanceTimeAndBlock(EPOCHPERIOD * - currentEpoch(await time.latest()))
       expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("0");
     })
   })
