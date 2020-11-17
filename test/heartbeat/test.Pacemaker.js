@@ -1,5 +1,5 @@
 const timeMachine = require('ganache-time-traveler');
-const currentEpoch = require('../helpers/currentEpoch.js')
+const currentEpoch = require('../helpers/currentEpoch')
 
 const {
   BN,           // Big Number support

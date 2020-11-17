@@ -1,4 +1,5 @@
 const timeMachine = require('ganache-time-traveler');
+const $HRIMPRewardsPerEpoch = require('../helpers/$HRIMPRewardsPerEpoch');
 
 const {
   BN,           // Big Number support
@@ -125,19 +126,21 @@ contract("UNIV2SHRIMPPool", (accounts) => {
 
     it('it succeeds', async () => {
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
-      expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
+      expectedRewards = $HRIMPRewardsPerEpoch(await pool.currentEpoch())
+      actualRewards = await pool.earned(tester)
+      expect(await pool.earned(tester)).to.be.bignumber.equal(expectedRewards);
       expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
       // Stake .01 Lp token to the tester
       const txReceipt = await pool.claim({from: tester})
       expectEvent(txReceipt, 'RewardClaimed', {
         user: tester,
-        reward: ether("0.551146384479717813"),
+        reward: expectedRewards,
       });
-      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(expectedRewards);
       // claim again
       expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0"))
       await pool.claim({from: tester})
-      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(expectedRewards);
     })
   })
 
@@ -153,12 +156,13 @@ contract("UNIV2SHRIMPPool", (accounts) => {
 
     it('it succeeds', async () => {
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
+      expectedRewards = $HRIMPRewardsPerEpoch(await pool.currentEpoch())
       expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.09"));
-      expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
+      expect(await pool.earned(tester)).to.be.bignumber.equal(expectedRewards);
       expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
       await pool.unstakeAndClaim({from: tester})
       expect(await lpToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.1"));
-      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(ether("0.551146384479717813"));
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(expectedRewards);
     })
   })
 
