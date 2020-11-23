@@ -22,10 +22,9 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     string public poolName;
     IERC20 public rewardToken;
 
-    mapping(uint256 => uint256) private _totalBalancesPerEpoch;
-    mapping(address => mapping(uint256 => uint256)) private _balancesPerEpoch;
     mapping(address => uint256) public lastEpochStaked;
-    mapping(address => uint256) public lastEpochRewardsClaimed;
+    mapping(address => uint256) public lastEpochRewardsCalculated;
+    mapping(address => uint256) public rewards;
 
     uint256 public starttime = HEARTBEATSTARTTIME;// 2020-12-04 00:00:00 (UTC UTC +00:00)
 
@@ -58,6 +57,22 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     */
     function totalRewardsInEpoch(uint256 epoch) virtual pure public returns (uint256 totalRewards);
 
+    function calculateRewards(address account) view internal returns(uint256 updatedRewards) {
+        updatedRewards = 0;
+        if (lastEpochRewardsCalculated[account] < currentEpoch()) {
+            for (uint256 epoch = lastEpochRewardsCalculated[account]; epoch < currentEpoch(); epoch++) {
+                updatedRewards = updatedRewards.add(balanceOf(account).mul(totalRewardsInEpoch(epoch)).div(totalSupply()));
+            }
+        }
+    }
+
+    function updateRewards(address account) internal {
+        if (totalSupply() > 0) {
+            rewards[account] = calculateRewards(account);
+        }
+        lastEpochRewardsCalculated[account] = currentEpoch();
+    }
+
     /**
         @notice Stake / Deposit LP Token into the Pool.
         @dev Increases count of total LP Token staked in the current epoch.
@@ -68,9 +83,13 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     */
     function stake(uint256 amount) public checkStart override {
         require(amount > 0, "Cannot stake 0");
-        _balancesPerEpoch[msg.sender][currentEpoch()] = _balancesPerEpoch[msg.sender][currentEpoch()].add(amount);
-        _totalBalancesPerEpoch[currentEpoch()] = _totalBalancesPerEpoch[currentEpoch()].add(amount);
         lastEpochStaked[msg.sender] = currentEpoch();
+        if (lastEpochRewardsCalculated[msg.sender] == 0) {
+            lastEpochRewardsCalculated[msg.sender] = currentEpoch();
+        }
+        else {
+            updateRewards(msg.sender);
+        }
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
@@ -82,8 +101,21 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     function unstake(uint256 amount) public checkStart override {
         require(amount > 0, "Cannot unstake 0");
         require(lastEpochStaked[msg.sender] < currentEpoch(), "Cannot unstake if staked during current epoch.");
+        updateRewards(msg.sender);
         super.unstake(amount);
         emit Unstaked(msg.sender, amount);
+    }
+
+    /**
+        @notice Transfers earnings from previous epochs to the caller
+    */
+    function claim() public checkStart {
+        updateRewards(msg.sender);
+        require(rewards[msg.sender] > 0, "No rewards to claim");
+        uint256 rewardsEarned = rewards[msg.sender];
+        rewards[msg.sender] = 0;
+        rewardToken.safeTransfer(msg.sender, rewardsEarned);
+        emit RewardClaimed(msg.sender, rewardsEarned);
     }
 
     /**
@@ -103,26 +135,8 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     */
     function earned(address account) public view returns (uint256 earnings) {
         earnings = 0;
-        if (lastEpochStaked[account] > 0) {
-            uint256 rewardPerEpoch = 0;
-            for (uint256 epoch = lastEpochRewardsClaimed[account]; epoch < currentEpoch(); epoch++) {
-                if (_totalBalancesPerEpoch[epoch] > 0) {
-                    rewardPerEpoch = _balancesPerEpoch[account][epoch].mul(totalRewardsInEpoch(epoch)).div(_totalBalancesPerEpoch[epoch]);
-                    earnings = earnings.add(rewardPerEpoch);
-                }
-            }
-        }
-    }
-
-    /**
-        @notice Transfers earnings from previous epochs to the caller
-    */
-    function claim() public checkStart {
-        uint256 reward = earned(msg.sender);
-        if (reward > 0) {
-            lastEpochRewardsClaimed[msg.sender] = currentEpoch();
-            rewardToken.safeTransfer(msg.sender, reward);
-            emit RewardClaimed(msg.sender, reward);
+        if (currentEpoch() > 1) {
+            earnings = calculateRewards(account);
         }
     }
 

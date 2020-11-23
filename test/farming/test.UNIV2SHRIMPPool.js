@@ -126,21 +126,35 @@ contract("UNIV2SHRIMPPool", (accounts) => {
 
     it('it succeeds', async () => {
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
-      expectedRewards = $HRIMPRewardsPerEpoch(await pool.currentEpoch())
-      actualRewards = await pool.earned(tester)
-      expect(await pool.earned(tester)).to.be.bignumber.equal(expectedRewards);
+      expectedRewards1 = $HRIMPRewardsPerEpoch(await pool.currentEpoch())
+      expect(await pool.earned(tester)).to.be.bignumber.equal(expectedRewards1);
       expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal("0");
       // Stake .01 Lp token to the tester
       const txReceipt = await pool.claim({from: tester})
       expectEvent(txReceipt, 'RewardClaimed', {
         user: tester,
-        reward: expectedRewards,
+        reward: expectedRewards1,
       });
-      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(expectedRewards);
-      // claim again
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(expectedRewards1);
+      // revert on claim again
       expect(await pool.earned(tester)).to.be.bignumber.equal(ether("0"))
+      await expectRevert(
+        pool.claim({from: tester}),
+        'No rewards to claim.',
+      );
+      // reward token balance has not changed
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(expectedRewards1);
+      // wait for next epoch
+      await timeMachine.advanceTimeAndBlock(EPOCHPERIOD)
+      expectedRewards2 = $HRIMPRewardsPerEpoch(await pool.currentEpoch())
+      expect(await pool.earned(tester)).to.be.bignumber.equal(expectedRewards2);
+      // claim
       await pool.claim({from: tester})
-      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(expectedRewards);
+      // reward token balance has increased
+      rewards1 = new BN(expectedRewards1)
+      rewards2 = new BN(expectedRewards2)
+      totalRewards = rewards1.add(rewards2)
+      expect(await rewardToken.balanceOf(tester)).to.be.bignumber.equal(totalRewards.toString());
     })
   })
 

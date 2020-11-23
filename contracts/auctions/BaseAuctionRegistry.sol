@@ -69,7 +69,7 @@ abstract contract BaseAuctionRegistry is Pacemaker, VRFConsumerBase, Ownable {
 
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
         uint256 randomResult = randomness.mod(100);
-        string memory tokenUri = probabilityDistribution.tokenUrlFromRandomResult(randomResult);
+        string memory tokenUri = probabilityDistribution.tokenUriFromRandomResult(randomResult);
         Purchase storage lastPurchase = purchases[purchases.length - 1];
         // mint nft
         auctionToken.mintToAndSetTokenURI(lastPurchase.purchaser, tokenUri);
@@ -97,9 +97,10 @@ abstract contract BaseAuctionRegistry is Pacemaker, VRFConsumerBase, Ownable {
     }
 
     function purchase() external {
-        require(!purchaseLocked,"purchase is locked");
         require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
         require(currentPrice() > 0, "Current price is 0");
+        require(!purchaseLocked,"purchase is locked");
+        lockPurchase();
         Purchase memory newPurchase = Purchase({
             epoch: currentEpoch(),
             amount: currentPrice(),
@@ -111,7 +112,6 @@ abstract contract BaseAuctionRegistry is Pacemaker, VRFConsumerBase, Ownable {
         purchases.push(newPurchase);
         // transfer fee
         rewardToken.safeTransferFrom(msg.sender, address(this), newPurchase.amount);
-        lockPurchase();
         // random number
         requestRandomness(keyHash, fee, uint256(address(this)));
         emit PurchaseMade(msg.sender, newPurchase.epoch, newPurchase.amount);
