@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: https://github.com/lendroidproject/protocol.2.0/blob/master/LICENSE.md
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";

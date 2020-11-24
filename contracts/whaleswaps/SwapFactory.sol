@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: https://github.com/lendroidproject/protocol.2.0/blob/master/LICENSE.md
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
@@ -15,13 +15,13 @@ contract SwapFactory is Pacemaker, Ownable, ISwapFactory {
     enum Status { Inactive, Active, Archived }
 
     // whaleswap
-    struct Swap {
+    struct SwapInfo {
         uint256 auctionTokenId;
         address swapMaster;
         address swap;
         Status status;
     }
-    Swap[] public swaps;
+    SwapInfo[] public swaps;
 
     IERC721WhaleStreet public auctionToken;
 
@@ -29,23 +29,22 @@ contract SwapFactory is Pacemaker, Ownable, ISwapFactory {
         auctionToken = IERC721WhaleStreet(auctionTokenAddress);
     }
 
-    function totalSwaps() external returns (uint256) {
+    function totalSwaps() view override external returns (uint256) {
         return swaps.length;
     }
 
-    function create(
-            uint256 tokenId,
+    function createSwap(
             string memory swapName,
             address[4] memory addresses,// token0, token1, uniswapPoolToken, auctionToken
-            uint256[4] memory uint256Values// feePercent, date, token0Amount, token1Amount
-        ) external returns (address swap) {
+            uint256[4] memory uint256Values// start, token0Amount, token1Amount, tokenId
+        ) override external returns (address swapAddress) {
         require(msg.sender == address(auctionToken), "invalid auction token");
         bytes memory bytecode = type(Swap).creationCode;
-        bytes32 salt = keccak256(abi.encodePacked(addresses[0], addresses[1], auctionToken.ownerOf(tokenId), block.timestamp));
+        bytes32 salt = keccak256(abi.encodePacked(addresses[0], addresses[1], auctionToken.ownerOf(uint256Values[3]), block.timestamp));
         assembly {
-            swap := create2(0, add(bytecode, 32), mload(bytecode), salt)
+            swapAddress := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        ISwap(swap).initialize(swapName, addresses, uint256Values);
+        ISwap(swapAddress).initialize(swapName, addresses, uint256Values);
     }
 
 }
