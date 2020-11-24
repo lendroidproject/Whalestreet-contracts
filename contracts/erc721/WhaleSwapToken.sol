@@ -7,6 +7,16 @@ import "./WhaleStreetToken.sol";
 
 contract WhaleSwapToken is WhaleStreetToken {
 
-    constructor() ERC721("WhaleSwap Token", "WST") {}
+    address public swapFactory;
+    address public swap;
+
+    constructor(address swapFactoryAddress) ERC721("WhaleSwap Token", "WST") {
+        swapFactory = swapFactoryAddress;
+    }
+
+    function setSwap(address swapAddress) external {
+        require(msg.sender == swapFactory, "invalid caller");
+        swap = swapAddress;
+    }
 
 }
