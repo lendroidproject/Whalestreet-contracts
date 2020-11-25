@@ -12,6 +12,6 @@ interface ISwapFactory {
     function createSwap(
             string memory swapName,
             address[4] memory addresses,// token0, token1, uniswapPoolToken, auctionToken
-            uint256[4] memory uint256Values// feePercent, start, token0Amount, token1Amount
+            uint256[2] memory uint256Values// epoch, tokenId
         ) external returns (address swap);
 }

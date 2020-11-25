@@ -57,4 +57,8 @@ abstract contract WhaleStreetToken is ERC721, Ownable {
         return _tokenIdTracker.current().add(1);
     }
 
+    function tokenIdExists(uint256 tokenId) external view returns (bool) {
+        return _exists(tokenId);
+    }
+
 }

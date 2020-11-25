@@ -15,4 +15,6 @@ interface IERC721WhaleStreet is IERC721 {
     function currentTokenId() external view returns (uint256);
 
     function getNextTokenId() external view returns (uint256);
+
+    function tokenIdExists(uint256 tokenId) external view returns (bool);
 }
