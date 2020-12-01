@@ -17,6 +17,7 @@ contract("Pacemaker", (accounts) => {
 
   const owner = accounts[0]
 
+  const HEARTBEATSTARTTIME = 1602288000;// 2020-10-10 00:00:00 (UTC UTC +00:00)
   const EPOCHPERIOD = 28800
 
   let pacemaker
@@ -52,5 +53,42 @@ contract("Pacemaker", (accounts) => {
       await timeMachine.advanceTimeAndBlock(EPOCHPERIOD * - currentEpoch(await time.latest()))
       expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("0");
     })
+
   })
+
+  describe('epochStartTimeFromTimestamp', () => {
+
+    beforeEach(async() => {
+        snapshotId = (await timeMachine.takeSnapshot())['result']
+    });
+
+    afterEach(async() => {
+        await timeMachine.revertToSnapshot(snapshotId);
+    });
+
+    it('returns correct value for currentEpoch', async () => {
+      expect(await pacemaker.epochStartTimeFromTimestamp(HEARTBEATSTARTTIME)).to.be.bignumber.equal((HEARTBEATSTARTTIME).toString());
+      expect(await pacemaker.epochStartTimeFromTimestamp(await time.latest())).to.be.bignumber.equal((HEARTBEATSTARTTIME + (currentEpoch(await time.latest()) - 1) * EPOCHPERIOD).toString());
+    })
+
+  })
+
+  describe('epochEndTimeFromTimestamp', () => {
+
+    beforeEach(async() => {
+        snapshotId = (await timeMachine.takeSnapshot())['result']
+    });
+
+    afterEach(async() => {
+        await timeMachine.revertToSnapshot(snapshotId);
+    });
+
+    it('returns correct value for currentEpoch', async () => {
+      expect(await pacemaker.epochEndTimeFromTimestamp(HEARTBEATSTARTTIME - 1)).to.be.bignumber.equal((HEARTBEATSTARTTIME).toString());
+      expect(await pacemaker.epochEndTimeFromTimestamp(HEARTBEATSTARTTIME)).to.be.bignumber.equal((HEARTBEATSTARTTIME + EPOCHPERIOD).toString());
+      expect(await pacemaker.epochEndTimeFromTimestamp(await time.latest())).to.be.bignumber.equal(((HEARTBEATSTARTTIME + (currentEpoch(await time.latest()) - 1) * EPOCHPERIOD) + EPOCHPERIOD).toString());
+    })
+
+  })
+
 });

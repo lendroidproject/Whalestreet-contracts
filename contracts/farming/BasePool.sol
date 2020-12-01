@@ -22,8 +22,11 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     string public poolName;
     IERC20 public rewardToken;
 
+    uint256 public lastUpdateTime;
+    uint256 public cachedRewardPerStake;
+
+    mapping(address => uint256) public userRewardPerStakePaid;
     mapping(address => uint256) public lastEpochStaked;
-    mapping(address => uint256) public lastEpochRewardsCalculated;
     mapping(address => uint256) public rewards;
 
     uint256 public starttime = HEARTBEATSTARTTIME;// 2020-12-04 00:00:00 (UTC UTC +00:00)
@@ -51,27 +54,40 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
         _;
     }
 
+    function rewardPerStake() public view returns (uint256) {
+        if (totalSupply() == 0) {
+            return cachedRewardPerStake;
+        }
+        return
+            cachedRewardPerStake.add(
+                block.timestamp.sub(lastUpdateTime).mul(rewardRate(currentEpoch())).mul(1e18).div(totalSupply())
+            );
+    }
+
+    /**
+        @notice Displays earnings of an address from previous epochs.
+        @param account : the given user address
+        @return earnings of given address
+    */
+    function earned(address account) public view returns (uint256) {
+        return balanceOf(account).mul(rewardPerStake().sub(userRewardPerStakePaid[account])).div(1e18).add(rewards[account]);
+    }
+
+    modifier updateRewards(address account) {
+        cachedRewardPerStake = rewardPerStake();
+        lastUpdateTime = block.timestamp;
+        if (account != address(0)) {
+            rewards[account] = earned(account);
+            userRewardPerStakePaid[account] = cachedRewardPerStake;
+        }
+        _;
+    }
+
     /**
         @notice Displays total reward tokens available for a given epoch. This
         function is implemented in contracts that inherit this contract.
     */
-    function totalRewardsInEpoch(uint256 epoch) virtual pure public returns (uint256 totalRewards);
-
-    function calculateRewards(address account) view internal returns(uint256 updatedRewards) {
-        updatedRewards = 0;
-        if (lastEpochRewardsCalculated[account] < currentEpoch()) {
-            for (uint256 epoch = lastEpochRewardsCalculated[account]; epoch < currentEpoch(); epoch++) {
-                updatedRewards = updatedRewards.add(balanceOf(account).mul(totalRewardsInEpoch(epoch)).div(totalSupply()));
-            }
-        }
-    }
-
-    function updateRewards(address account) internal {
-        if (totalSupply() > 0) {
-            rewards[account] = calculateRewards(account);
-        }
-        lastEpochRewardsCalculated[account] = currentEpoch();
-    }
+    function rewardRate(uint256 epoch) virtual pure public returns (uint256);
 
     /**
         @notice Stake / Deposit LP Token into the Pool.
@@ -81,15 +97,9 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
              Perform actions from BasePool.stake().
         @param amount : Amount of LP Token to stake
     */
-    function stake(uint256 amount) public checkStart override {
+    function stake(uint256 amount) public checkStart updateRewards(msg.sender) override {
         require(amount > 0, "Cannot stake 0");
         lastEpochStaked[msg.sender] = currentEpoch();
-        if (lastEpochRewardsCalculated[msg.sender] == 0) {
-            lastEpochRewardsCalculated[msg.sender] = currentEpoch();
-        }
-        else {
-            updateRewards(msg.sender);
-        }
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
@@ -98,10 +108,9 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
         @notice Unstake / Withdraw staked LP Token from the Pool
         @inheritdoc LPTokenWrapper
     */
-    function unstake(uint256 amount) public checkStart override {
+    function unstake(uint256 amount) public checkStart updateRewards(msg.sender) override {
         require(amount > 0, "Cannot unstake 0");
         require(lastEpochStaked[msg.sender] < currentEpoch(), "Cannot unstake if staked during current epoch.");
-        updateRewards(msg.sender);
         super.unstake(amount);
         emit Unstaked(msg.sender, amount);
     }
@@ -109,8 +118,7 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     /**
         @notice Transfers earnings from previous epochs to the caller
     */
-    function claim() public checkStart {
-        updateRewards(msg.sender);
+    function claim() public checkStart updateRewards(msg.sender) {
         require(rewards[msg.sender] > 0, "No rewards to claim");
         uint256 rewardsEarned = rewards[msg.sender];
         rewards[msg.sender] = 0;
@@ -123,21 +131,9 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
         @dev : Perform actions from unstake()
                Perform actions from claim()
     */
-    function unstakeAndClaim() checkStart external {
+    function unstakeAndClaim() checkStart updateRewards(msg.sender) external {
         unstake(balanceOf(msg.sender));
         claim();
-    }
-
-    /**
-        @notice Displays earnings of a given address from previous epochs.
-        @param account : the given user address
-        @return earnings of given address since last withdrawn epoch
-    */
-    function earned(address account) public view returns (uint256 earnings) {
-        earnings = 0;
-        if (currentEpoch() > 1) {
-            earnings = calculateRewards(account);
-        }
     }
 
 }

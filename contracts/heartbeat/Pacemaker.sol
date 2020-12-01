@@ -28,11 +28,24 @@ abstract contract Pacemaker {
     }
 
     function epochStartTimeFromTimestamp(uint256 timestamp) pure public returns (uint256) {
-        return HEARTBEATSTARTTIME.add(epochFromTimestamp(timestamp).mul(EPOCHPERIOD));
+        if (timestamp <= HEARTBEATSTARTTIME) {
+            return HEARTBEATSTARTTIME;
+        }
+        else {
+            return HEARTBEATSTARTTIME.add((epochFromTimestamp(timestamp).sub(1)).mul(EPOCHPERIOD));
+        }
     }
 
     function epochEndTimeFromTimestamp(uint256 timestamp) pure public returns (uint256) {
-        return epochStartTimeFromTimestamp(timestamp).add(EPOCHPERIOD);
+        if (timestamp < HEARTBEATSTARTTIME) {
+            return HEARTBEATSTARTTIME;
+        }
+        else if (timestamp == HEARTBEATSTARTTIME) {
+            return HEARTBEATSTARTTIME.add(EPOCHPERIOD);
+        }
+        else {
+            return epochStartTimeFromTimestamp(timestamp).add(EPOCHPERIOD);
+        }
     }
 
     /**

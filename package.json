@@ -32,7 +32,7 @@
     "build": "run-s build:*",
     "build:contracts": "rm -f build/contracts/*;./node_modules/truffle/build/cli.bundled.js compile",
     "test": "run-s lint:js lint:sol build:* test:*",
-    "test:contracts": "./node_modules/truffle/build/cli.bundled.js test && cat build/eth-gas-report.txt | tee build/contracts-eth-gas-report.txt",
+    "test:contracts": "./node_modules/truffle/build/cli.bundled.js test/contracts.test.js && cat build/eth-gas-report.txt | tee build/contracts-eth-gas-report.txt",
     "test-coverage": "./node_modules/truffle/build/cli.bundled.js run coverage",
     "lint": "run-s lint:*",
     "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
