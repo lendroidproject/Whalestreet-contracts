@@ -42,12 +42,10 @@ Please use Git commits according to this article: https://chris.beams.io/posts/g
 
   `npm run test`
 
-  Output :
   ![Farming Test Result](images/farming-test-result.png)
 
 * Run the covergae
 
   `npm run test-coverage`
 
-  Output :
-  ![Farming Test Result](images/farming-coverage-result.png)
+  ![Farming Coverage Result](images/farming-coverage-result.png)
