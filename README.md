@@ -9,7 +9,7 @@ The farming module consists of 3 main smart contracts:
 3. UNIV2SHRIMPPool.sol
 
 
-All the contracts in this repository have been written in Solidity v0.7.4.
+All the contracts in this repository have been written in Solidity v0.7.5
 
 Please use Git commits according to this article: https://chris.beams.io/posts/git-commit
 

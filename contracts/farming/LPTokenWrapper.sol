@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: https://github.com/lendroidproject/protocol.2.0/blob/master/LICENSE.md
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 
 /** @title LPTokenWrapper
@@ -16,6 +17,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 abstract contract LPTokenWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+    using Address for address;
 
     IERC20 public lpToken;
 
@@ -27,7 +29,8 @@ abstract contract LPTokenWrapper {
         @param lpTokenAddress : address of the LP Token
     */
     constructor(address lpTokenAddress) {
-      lpToken = IERC20(lpTokenAddress);
+        require(lpTokenAddress.isContract(), "invalid lpTokenAddress");
+        lpToken = IERC20(lpTokenAddress);
     }
 
     /**
