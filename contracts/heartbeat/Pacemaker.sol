@@ -11,38 +11,46 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 */
 
 
+// solhint-disable-next-line
 abstract contract Pacemaker {
 
     using SafeMath for uint256;
-
-    // uint256 constant HEART_BEAT_START_TIME = 1607040000;// 2020-12-04 00:00:00 (UTC UTC +00:00)
-    uint256 constant public HEART_BEAT_START_TIME = 1602288000;// 2020-10-10 00:00:00 (UTC UTC +00:00)
+    uint256 constant public HEART_BEAT_START_TIME = 1607040000;// 2020-12-04 00:00:00 (UTC UTC +00:00)
     uint256 constant public EPOCH_PERIOD = 8 hours;
 
-    function epochFromTimestamp(uint256 timestamp) pure public returns (uint256) {
+    /**
+        @notice Displays the epoch which contains the given timestamp
+        @return uint256 : Epoch value
+    */
+    function epochFromTimestamp(uint256 timestamp) public pure returns (uint256) {
         if (timestamp > HEART_BEAT_START_TIME) {
             return timestamp.sub(HEART_BEAT_START_TIME).div(EPOCH_PERIOD).add(1);
         }
         return 0;
     }
 
-    function epochStartTimeFromTimestamp(uint256 timestamp) pure public returns (uint256) {
+    /**
+        @notice Displays timestamp when a given epoch began
+        @return uint256 : Epoch start time
+    */
+    function epochStartTimeFromTimestamp(uint256 timestamp) public pure returns (uint256) {
         if (timestamp <= HEART_BEAT_START_TIME) {
             return HEART_BEAT_START_TIME;
-        }
-        else {
+        } else {
             return HEART_BEAT_START_TIME.add((epochFromTimestamp(timestamp).sub(1)).mul(EPOCH_PERIOD));
         }
     }
 
-    function epochEndTimeFromTimestamp(uint256 timestamp) pure public returns (uint256) {
+    /**
+        @notice Displays timestamp when a given epoch will end
+        @return uint256 : Epoch end time
+    */
+    function epochEndTimeFromTimestamp(uint256 timestamp) public pure returns (uint256) {
         if (timestamp < HEART_BEAT_START_TIME) {
             return HEART_BEAT_START_TIME;
-        }
-        else if (timestamp == HEART_BEAT_START_TIME) {
+        } else if (timestamp == HEART_BEAT_START_TIME) {
             return HEART_BEAT_START_TIME.add(EPOCH_PERIOD);
-        }
-        else {
+        } else {
             return epochStartTimeFromTimestamp(timestamp).add(EPOCH_PERIOD);
         }
     }
@@ -52,8 +60,8 @@ abstract contract Pacemaker {
         @dev Calculates the nth 8-hour window frame since the heartbeat's start time
         @return uint256 : Current epoch value
     */
-    function currentEpoch() view public returns (uint256) {
-        return epochFromTimestamp(block.timestamp);
+    function currentEpoch() public view returns (uint256) {
+        return epochFromTimestamp(block.timestamp);// solhint-disable-line not-rely-on-time
     }
 
 }

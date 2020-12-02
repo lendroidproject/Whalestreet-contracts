@@ -6,6 +6,6 @@ import "./MockERC20.sol";
 
 
 contract Mock$HRIMP is MockERC20 {
-
-    constructor () MockERC20("Lendroid Shrimp Token", "$HRIMP") {}
+    // solhint-disable-next-line func-visibility
+    constructor () MockERC20("WhaleStreet $hrimp Token", "$HRIMP") {}// solhint-disable-line no-empty-blocks
 }

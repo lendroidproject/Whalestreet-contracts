@@ -34,14 +34,20 @@ Please use Git commits according to this article: https://chris.beams.io/posts/g
   `ganache-cli`
 
 
-* Open new terminal, Compile using truffle
+* Open new terminal, Compile the contracts
 
-  `./node_modules/truffle/build/cli.bundled.js compile`
+  `npm run build`
 
 * Run the tests
 
-  `./node_modules/truffle/build/cli.bundled.js test`
+  `npm run test`
+
+  Output :
+  ![Farming Test Result](images/farming-test-result.png)
 
 * Run the covergae
 
-  `./node_modules/truffle/build/cli.bundled.js run coverage`
+  `npm run test-coverage`
+
+  Output :
+  ![Farming Test Result](images/farming-coverage-result.png)

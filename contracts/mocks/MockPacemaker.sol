@@ -6,4 +6,5 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../heartbeat/Pacemaker.sol";
 
 
+// solhint-disable-next-line no-empty-blocks
 contract MockPacemaker is Pacemaker, Ownable {}

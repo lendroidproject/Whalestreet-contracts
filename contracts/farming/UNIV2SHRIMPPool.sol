@@ -12,6 +12,7 @@ import "./BasePool.sol";
 */
 
 
+// solhint-disable-next-line
 contract UNIV2SHRIMPPool is BasePool {
 
     using SafeMath for uint256;
@@ -23,9 +24,9 @@ contract UNIV2SHRIMPPool is BasePool {
         @param rewardTokenAddress : $HRIMP Token address
         @param lpTokenAddress : LST-WETH-UNIV2 Token address
     */
-    constructor(address rewardTokenAddress, address lpTokenAddress)
-        BasePool("UNIV2SHRIMPPool", rewardTokenAddress, lpTokenAddress) {
-    }
+    // solhint-disable-next-line func-visibility
+    constructor(address rewardTokenAddress, address lpTokenAddress) BasePool("UNIV2SHRIMPPool",
+        rewardTokenAddress, lpTokenAddress) {}// solhint-disable-line no-empty-blocks
 
     /**
         @notice Displays total $HRIMP rewards distributed per second in a given epoch.
@@ -56,25 +57,20 @@ contract UNIV2SHRIMPPool is BasePool {
         @param epoch : 8-hour window number
         @return $HRIMP Tokens distributed per second during the given epoch
     */
-    function rewardRate(uint256 epoch) override pure public returns (uint256) {
+    function rewardRate(uint256 epoch) public pure override returns (uint256) {
         uint256 seriesRewards = 0;
         require(epoch > 0, "epoch cannot be 0");
         if (epoch <= 84) {
             seriesRewards = 12000000;// 12 M
-        }
-        else if (epoch > 84 && epoch <= 336) {
+        } else if (epoch > 84 && epoch <= 336) {
             seriesRewards = 21600000;// 21.6 M
-        }
-        else if (epoch > 336 && epoch <= 588) {
+        } else if (epoch > 336 && epoch <= 588) {
             seriesRewards = 10800000;// 10.8 M
-        }
-        else if (epoch > 588 && epoch <= 840) {
+        } else if (epoch > 588 && epoch <= 840) {
             seriesRewards = 5400000;// 5.4 M
-        }
-        else if (epoch > 840 && epoch <= 1092) {
+        } else if (epoch > 840 && epoch <= 1092) {
             seriesRewards = 2700000;// 2.7 M
-        }
-        else {
+        } else {
             seriesRewards = 1350000;// 1.35 M
         }
 

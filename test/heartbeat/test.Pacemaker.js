@@ -1,94 +1,93 @@
-const timeMachine = require('ganache-time-traveler');
-const currentEpoch = require('../helpers/currentEpoch')
+const timeMachine = require("ganache-time-traveler");
+const currentEpoch = require("../helpers/currentEpoch");
 
-const {
-  BN,           // Big Number support
-  constants,    // Common constants, like the zero address and largest integers
-  expectEvent,  // Assertions for emitted events
-  expectRevert, // Assertions for transactions that should fail
-  time,
-} = require('@openzeppelin/test-helpers');
+const { time } = require("@openzeppelin/test-helpers");
 
-const { expect } = require('chai');
+const { expect } = require("chai");
 
 contract("Pacemaker", (accounts) => {
 
-  const MockPacemaker = artifacts.require("MockPacemaker");
+    const MockPacemaker = artifacts.require("MockPacemaker");
 
-  const owner = accounts[0]
+    const owner = accounts[0];
 
-  const HEARTBEATSTARTTIME = 1602288000;// 2020-10-10 00:00:00 (UTC UTC +00:00)
-  const EPOCHPERIOD = 28800
+    const HEART_BEAT_START_TIME = 1607040000;// 2020-12-04 00:00:00 (UTC UTC +00:00)
+    const EPOCH_PERIOD = 28800;
 
-  let pacemaker
+    this.pacemaker = null;
 
-  beforeEach(async () => {
-    pacemaker = await MockPacemaker.deployed()
+    beforeEach(async () => {
+        this.pacemaker = await MockPacemaker.deployed();
 
-  })
-
-  describe('constructor', () => {
-
-    it('deploys with owner', async () => {
-      assert.equal(owner, await pacemaker.owner(), "owner is not deployer")
-    })
-
-  })
-
-  describe('currentEpoch', () => {
-
-    beforeEach(async() => {
-        snapshotId = (await timeMachine.takeSnapshot())['result']
     });
 
-    afterEach(async() => {
-        await timeMachine.revertToSnapshot(snapshotId);
+    describe("constructor", () => {
+
+        after(async () => {
+            // set time to HEART_BEAT_START_TIME
+            await timeMachine.advanceBlockAndSetTime(HEART_BEAT_START_TIME+1);
+        });
+
+        it("deploys with owner", async () => {
+            assert.equal(owner, await this.pacemaker.owner(), "owner is not deployer");
+        });
+
     });
 
-    it('check currentEpoch after starttime', async () => {
-      expect(await pacemaker.currentEpoch()).to.be.bignumber.equal((currentEpoch(await time.latest())).toString());
-    })
+    describe("currentEpoch", () => {
 
-    it('check currentEpoch before starttime', async () => {
-      await timeMachine.advanceTimeAndBlock(EPOCHPERIOD * - currentEpoch(await time.latest()))
-      expect(await pacemaker.currentEpoch()).to.be.bignumber.equal("0");
-    })
+        beforeEach(async() => {
+            snapshotId = (await timeMachine.takeSnapshot())["result"];
+        });
 
-  })
+        afterEach(async() => {
+            await timeMachine.revertToSnapshot(snapshotId);
+        });
 
-  describe('epochStartTimeFromTimestamp', () => {
+        it("check currentEpoch after starttime", async () => {
+            expect(await this.pacemaker.currentEpoch()).to.be.bignumber.equal((currentEpoch(await time.latest())).toString());
+        });
 
-    beforeEach(async() => {
-        snapshotId = (await timeMachine.takeSnapshot())['result']
+        it("check currentEpoch before starttime", async () => {
+            await timeMachine.advanceTimeAndBlock(EPOCH_PERIOD * - currentEpoch(await time.latest()));
+            expect(await this.pacemaker.currentEpoch()).to.be.bignumber.equal("0");
+        });
+
     });
 
-    afterEach(async() => {
-        await timeMachine.revertToSnapshot(snapshotId);
+    describe("epochStartTimeFromTimestamp", () => {
+
+        beforeEach(async() => {
+            snapshotId = (await timeMachine.takeSnapshot())["result"];
+        });
+
+        afterEach(async() => {
+            await timeMachine.revertToSnapshot(snapshotId);
+        });
+
+        it("returns correct value for currentEpoch", async () => {
+            expect(await this.pacemaker.epochStartTimeFromTimestamp(HEART_BEAT_START_TIME)).to.be.bignumber.equal((HEART_BEAT_START_TIME).toString());
+            expect(await this.pacemaker.epochStartTimeFromTimestamp(await time.latest())).to.be.bignumber.equal((HEART_BEAT_START_TIME + (currentEpoch(await time.latest()) - 1) * EPOCH_PERIOD).toString());
+        });
+
     });
 
-    it('returns correct value for currentEpoch', async () => {
-      expect(await pacemaker.epochStartTimeFromTimestamp(HEARTBEATSTARTTIME)).to.be.bignumber.equal((HEARTBEATSTARTTIME).toString());
-      expect(await pacemaker.epochStartTimeFromTimestamp(await time.latest())).to.be.bignumber.equal((HEARTBEATSTARTTIME + (currentEpoch(await time.latest()) - 1) * EPOCHPERIOD).toString());
-    })
+    describe("epochEndTimeFromTimestamp", () => {
 
-  })
+        beforeEach(async() => {
+            snapshotId = (await timeMachine.takeSnapshot())["result"];
+        });
 
-  describe('epochEndTimeFromTimestamp', () => {
+        afterEach(async() => {
+            await timeMachine.revertToSnapshot(snapshotId);
+        });
 
-    beforeEach(async() => {
-        snapshotId = (await timeMachine.takeSnapshot())['result']
+        it("returns correct value for currentEpoch", async () => {
+            expect(await this.pacemaker.epochEndTimeFromTimestamp(HEART_BEAT_START_TIME - 1)).to.be.bignumber.equal((HEART_BEAT_START_TIME).toString());
+            expect(await this.pacemaker.epochEndTimeFromTimestamp(HEART_BEAT_START_TIME)).to.be.bignumber.equal((HEART_BEAT_START_TIME + EPOCH_PERIOD).toString());
+            expect(await this.pacemaker.epochEndTimeFromTimestamp(await time.latest())).to.be.bignumber.equal(((HEART_BEAT_START_TIME + (currentEpoch(await time.latest()) - 1) * EPOCH_PERIOD) + EPOCH_PERIOD).toString());
+        });
+
     });
-
-    afterEach(async() => {
-        await timeMachine.revertToSnapshot(snapshotId);
-    });
-
-    it('returns correct value for currentEpoch', async () => {
-      expect(await pacemaker.epochEndTimeFromTimestamp(HEARTBEATSTARTTIME - 1)).to.be.bignumber.equal((HEARTBEATSTARTTIME).toString());
-      expect(await pacemaker.epochEndTimeFromTimestamp(HEARTBEATSTARTTIME)).to.be.bignumber.equal((HEARTBEATSTARTTIME + EPOCHPERIOD).toString());
-      expect(await pacemaker.epochEndTimeFromTimestamp(await time.latest())).to.be.bignumber.equal(((HEARTBEATSTARTTIME + (currentEpoch(await time.latest()) - 1) * EPOCHPERIOD) + EPOCHPERIOD).toString());
-    })
-
-  })
 
 });
