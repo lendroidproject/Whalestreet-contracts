@@ -19,7 +19,7 @@ contract("UNIV2SHRIMPPool", (accounts) => {
     const tester = accounts[1];
     const tester2 = accounts[2];
     const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-    const HEART_BEAT_START_TIME = 1607040000;// 2020-12-04 00:00:00 (UTC UTC +00:00)
+    const HEART_BEAT_START_TIME = 1607212800;// 2020-12-06 00:00:00 UTC (UTC +00:00)
     const EPOCH_PERIOD = 28800;
 
     this.pool = null;

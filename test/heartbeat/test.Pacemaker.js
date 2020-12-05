@@ -11,7 +11,7 @@ contract("Pacemaker", (accounts) => {
 
     const owner = accounts[0];
 
-    const HEART_BEAT_START_TIME = 1607040000;// 2020-12-04 00:00:00 (UTC UTC +00:00)
+    const HEART_BEAT_START_TIME = 1607212800;// 2020-12-06 00:00:00 UTC (UTC +00:00)
     const EPOCH_PERIOD = 28800;
 
     this.pacemaker = null;

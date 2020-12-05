@@ -15,7 +15,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 abstract contract Pacemaker {
 
     using SafeMath for uint256;
-    uint256 constant public HEART_BEAT_START_TIME = 1607040000;// 2020-12-04 00:00:00 (UTC UTC +00:00)
+    uint256 constant public HEART_BEAT_START_TIME = 1607212800;// 2020-12-06 00:00:00 UTC (UTC +00:00)
     uint256 constant public EPOCH_PERIOD = 8 hours;
 
     /**
