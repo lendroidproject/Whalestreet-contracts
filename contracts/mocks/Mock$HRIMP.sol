@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: https://github.com/lendroidproject/protocol.2.0/blob/master/LICENSE.md
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 
 import "./MockERC20.sol";
 
 
 contract Mock$HRIMP is MockERC20 {
-
-    constructor () MockERC20("Lendroid Shrimp Token", "$HRIMP") {}
+    // solhint-disable-next-line func-visibility
+    constructor () MockERC20("WhaleStreet $hrimp Token", "$HRIMP") {}// solhint-disable-line no-empty-blocks
 }
