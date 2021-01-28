@@ -8,10 +8,10 @@ pragma solidity 0.7.5;
 interface ISwap {
 
     function initialize(
-          string memory swapName,
-          address[4] memory addresses,// token0, token1, uniswapPoolToken, auctionToken
-          uint256[2] memory uint256Values// epoch, tokenId
-          ) external;
+            string memory swapName,
+            address[4] memory addresses,// token0, token1, uniswapPoolToken, auctionToken
+            uint256[2] memory uint256Values// epoch, tokenId
+        ) external;
 
     function update(uint256 startEpoch) external;
 

@@ -9,10 +9,11 @@ contract MockAuctionTokenProbabilityDistribution is IAuctionTokenProbabilityDist
 
     enum Rarity { REGULAR, UNIQUE, LEGENDARY }
 
-    mapping(Rarity => string) tokenUris;
+    mapping(Rarity => string) internal tokenUris;
 
-    mapping(Rarity => uint256) feePercentages;
+    mapping(Rarity => uint256) internal feePercentages;
 
+    // solhint-disable-next-line func-visibility
     constructor() {
         tokenUris[Rarity.REGULAR] = "REGULAR";
         tokenUris[Rarity.UNIQUE] = "UNIQUE";
@@ -22,30 +23,25 @@ contract MockAuctionTokenProbabilityDistribution is IAuctionTokenProbabilityDist
         feePercentages[Rarity.LEGENDARY] = 50;
     }
 
-    function tokenUriFromRandomResult(uint256 randomResult) override view public returns(string memory tokenUri) {
+    function tokenUriFromRandomResult(uint256 randomResult) public view override returns(string memory tokenUri) {
         require((randomResult > 0) && (randomResult <= 100), "Invalid randomResult");
         if (randomResult > 0 && randomResult <= 10) {
             tokenUri = tokenUris[Rarity.LEGENDARY];
-        }
-        else if (randomResult > 15 && randomResult <= 30) {
+        } else if (randomResult > 15 && randomResult <= 30) {
             tokenUri = tokenUris[Rarity.UNIQUE];
-        }
-        else {
+        } else {
             tokenUri = tokenUris[Rarity.REGULAR];
         }
     }
 
-    function feePercentage(string calldata tokenUri) override view public returns(uint256 feePercent) {
+    function feePercentage(string calldata tokenUri) public view override returns(uint256 feePercent) {
         if (keccak256(abi.encodePacked(tokenUri)) == keccak256(abi.encodePacked(tokenUris[Rarity.REGULAR]))) {
             feePercent = feePercentages[Rarity.REGULAR];
-        }
-        else if (keccak256(abi.encodePacked(tokenUri)) == keccak256(abi.encodePacked(tokenUris[Rarity.UNIQUE]))) {
+        } else if (keccak256(abi.encodePacked(tokenUri)) == keccak256(abi.encodePacked(tokenUris[Rarity.UNIQUE]))) {
             feePercent = feePercentages[Rarity.UNIQUE];
-        }
-        else if (keccak256(abi.encodePacked(tokenUri)) == keccak256(abi.encodePacked(tokenUris[Rarity.LEGENDARY]))) {
+        } else if (keccak256(abi.encodePacked(tokenUri)) == keccak256(abi.encodePacked(tokenUris[Rarity.LEGENDARY]))) {
             feePercent = feePercentages[Rarity.LEGENDARY];
-        }
-        else {
+        } else {
             feePercent = 0;
         }
     }

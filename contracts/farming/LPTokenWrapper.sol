@@ -3,6 +3,7 @@ pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 
 /** @title LPTokenWrapper
@@ -13,9 +14,11 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 */
 
 
+// solhint-disable-next-line
 abstract contract LPTokenWrapper {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+    using Address for address;
 
     IERC20 public lpToken;
 
@@ -26,8 +29,10 @@ abstract contract LPTokenWrapper {
         @notice Registers the LP Token address
         @param lpTokenAddress : address of the LP Token
     */
+    // solhint-disable-next-line func-visibility
     constructor(address lpTokenAddress) {
-      lpToken = IERC20(lpTokenAddress);
+        require(lpTokenAddress.isContract(), "invalid lpTokenAddress");
+        lpToken = IERC20(lpTokenAddress);
     }
 
     /**
@@ -54,7 +59,7 @@ abstract contract LPTokenWrapper {
                LP Token is transferred from msg.sender to the Pool.
         @param amount : Amount of LP Token to stake
     */
-    function stake(uint256 amount) virtual public {
+    function stake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
         lpToken.safeTransferFrom(msg.sender, address(this), amount);
@@ -67,7 +72,7 @@ abstract contract LPTokenWrapper {
                LP Token is transferred from the Pool to the msg.sender
         @param amount : Amount of LP Token to withdraw / unstake
     */
-    function unstake(uint256 amount) virtual public {
+    function unstake(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         lpToken.safeTransfer(msg.sender, amount);

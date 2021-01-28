@@ -7,11 +7,12 @@ pragma solidity 0.7.5;
  */
 interface ISwapFactory {
 
-    function totalSwaps() view external returns (uint256);
-
     function createSwap(
             string memory swapName,
             address[4] memory addresses,// token0, token1, uniswapPoolToken, auctionToken
             uint256[2] memory uint256Values// epoch, tokenId
         ) external returns (address swap);
+
+    function totalSwaps() external view returns (uint256);
+
 }

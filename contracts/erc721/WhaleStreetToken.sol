@@ -7,26 +7,16 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 
+// solhint-disable-next-line
 abstract contract WhaleStreetToken is ERC721, Ownable {
-
 
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdTracker;
 
-    /**
-      * @notice Increments the value of _currentTokenId
-      * @dev Internal function that increases the value of _currentTokenId by 1
-      */
-    function _incrementTokenId() private  {
-        _tokenIdTracker.increment();
-    }
-
-    function _mintTo(address to) internal {
-        uint256 newTokenId = getNextTokenId();
-        _mint(to, newTokenId);
-        _incrementTokenId();
+    function tokenIdExists(uint256 tokenId) external view returns (bool) {
+        return _exists(tokenId);
     }
 
     /**
@@ -57,8 +47,18 @@ abstract contract WhaleStreetToken is ERC721, Ownable {
         return _tokenIdTracker.current().add(1);
     }
 
-    function tokenIdExists(uint256 tokenId) external view returns (bool) {
-        return _exists(tokenId);
+    function _mintTo(address to) internal {
+        uint256 newTokenId = getNextTokenId();
+        _mint(to, newTokenId);
+        _incrementTokenId();
+    }
+
+    /**
+      * @notice Increments the value of _currentTokenId
+      * @dev Internal function that increases the value of _currentTokenId by 1
+      */
+    function _incrementTokenId() private {
+        _tokenIdTracker.increment();
     }
 
 }

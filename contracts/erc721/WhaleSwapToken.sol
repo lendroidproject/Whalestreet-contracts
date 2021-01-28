@@ -6,7 +6,7 @@ import "./WhaleStreetToken.sol";
 
 
 contract WhaleSwapToken is WhaleStreetToken {
-
-    constructor() ERC721("WhaleSwap Token", "WST") {}
+    // solhint-disable-next-line func-visibility
+    constructor() ERC721("WhaleSwap Token", "WST") {}// solhint-disable-line no-empty-blocks
 
 }

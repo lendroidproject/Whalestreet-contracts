@@ -16,9 +16,12 @@ import "./LPTokenWrapper.sol";
 */
 
 
+// solhint-disable-next-line
 abstract contract BasePool is LPTokenWrapper, Pacemaker {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+    using Address for address;
+
     string public poolName;
     IERC20 public rewardToken;
 
@@ -29,7 +32,7 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     mapping(address => uint256) public lastEpochStaked;
     mapping(address => uint256) public rewards;
 
-    uint256 public starttime = HEARTBEATSTARTTIME;// 2020-12-04 00:00:00 (UTC UTC +00:00)
+    uint256 public startTime = HEART_BEAT_START_TIME;// 2020-12-04 00:00:00 (UTC UTC +00:00)
 
     event Staked(address indexed user, uint256 amount);
     event Unstaked(address indexed user, uint256 amount);
@@ -41,53 +44,78 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
         @param rewardTokenAddress : address of the Reward Token
         @param lpTokenAddress : address of the LP Token
     */
+    // solhint-disable-next-line func-visibility
     constructor(string memory name, address rewardTokenAddress, address lpTokenAddress) LPTokenWrapper(lpTokenAddress) {
+        require(rewardTokenAddress.isContract(), "invalid rewardTokenAddress");
         rewardToken = IERC20(rewardTokenAddress);
+        // It's OK for the pool name to be empty.
         poolName = name;
     }
 
     /**
-        @notice modifier to check if the starttime has been reached
+        @notice modifier to check if the startTime has been reached
+        @dev Pacemaker.currentEpoch() returns values > 0 only from
+            HEART_BEAT_START_TIME+1. Therefore, staking is possible only from
+            epoch 1
     */
-    modifier checkStart(){
-        require(block.timestamp >= starttime,"not start");
+    modifier checkStart() {
+        // solhint-disable-next-line not-rely-on-time
+        require(block.timestamp > startTime, "startTime has not been reached");
         _;
     }
 
+    /**
+        @notice Unstake the staked LP Token and claim corresponding earnings from the Pool
+        @dev : Perform actions from unstake()
+               Perform actions from claim()
+    */
+    function unstakeAndClaim() external updateRewards(msg.sender) checkStart {
+        unstake(balanceOf(msg.sender));
+        claim();
+    }
+
+    /**
+        @notice Displays reward tokens per Lp token staked. Useful to display APY on the frontend
+    */
     function rewardPerStake() public view returns (uint256) {
         if (totalSupply() == 0) {
             return cachedRewardPerStake;
         }
-        return
-            cachedRewardPerStake.add(
-                block.timestamp.sub(lastUpdateTime).mul(rewardRate(currentEpoch())).mul(1e18).div(totalSupply())
+        // solhint-disable-next-line not-rely-on-time
+        return cachedRewardPerStake.add(block.timestamp.sub(lastUpdateTime).mul(
+                rewardRate(currentEpoch())).mul(1e18).div(totalSupply())
             );
     }
 
     /**
-        @notice Displays earnings of an address from previous epochs.
+        @notice Displays earnings of an address so far. Useful to display claimable rewards on the frontend
         @param account : the given user address
         @return earnings of given address
     */
     function earned(address account) public view returns (uint256) {
-        return balanceOf(account).mul(rewardPerStake().sub(userRewardPerStakePaid[account])).div(1e18).add(rewards[account]);
+        return balanceOf(account).mul(rewardPerStake().sub(
+            userRewardPerStakePaid[account])).div(1e18).add(rewards[account]);
     }
 
+    /**
+        @notice modifier to update system and user info whenever a user makes a
+            function call to stake, unstake, claim or unstakeAndClaim.
+        @dev Updates rewardPerStake and time when system is updated
+            Recalculates user rewards
+    */
     modifier updateRewards(address account) {
         cachedRewardPerStake = rewardPerStake();
-        lastUpdateTime = block.timestamp;
-        if (account != address(0)) {
-            rewards[account] = earned(account);
-            userRewardPerStakePaid[account] = cachedRewardPerStake;
-        }
+        lastUpdateTime = block.timestamp;// solhint-disable-line not-rely-on-time
+        rewards[account] = earned(account);
+        userRewardPerStakePaid[account] = cachedRewardPerStake;
         _;
     }
 
     /**
-        @notice Displays total reward tokens available for a given epoch. This
+        @notice Displays reward tokens per second for a given epoch. This
         function is implemented in contracts that inherit this contract.
     */
-    function rewardRate(uint256 epoch) virtual pure public returns (uint256);
+    function rewardRate(uint256 epoch) public pure virtual returns (uint256);
 
     /**
         @notice Stake / Deposit LP Token into the Pool.
@@ -110,7 +138,7 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
     */
     function unstake(uint256 amount) public checkStart updateRewards(msg.sender) override {
         require(amount > 0, "Cannot unstake 0");
-        require(lastEpochStaked[msg.sender] < currentEpoch(), "Cannot unstake if staked during current epoch.");
+        require(lastEpochStaked[msg.sender] < currentEpoch(), "Cannot unstake in staked epoch.");
         super.unstake(amount);
         emit Unstaked(msg.sender, amount);
     }
@@ -124,16 +152,6 @@ abstract contract BasePool is LPTokenWrapper, Pacemaker {
         rewards[msg.sender] = 0;
         rewardToken.safeTransfer(msg.sender, rewardsEarned);
         emit RewardClaimed(msg.sender, rewardsEarned);
-    }
-
-    /**
-        @notice Unstake the staked LP Token and claim corresponding earnings from the Pool
-        @dev : Perform actions from unstake()
-               Perform actions from claim()
-    */
-    function unstakeAndClaim() checkStart updateRewards(msg.sender) external {
-        unstake(balanceOf(msg.sender));
-        claim();
     }
 
 }

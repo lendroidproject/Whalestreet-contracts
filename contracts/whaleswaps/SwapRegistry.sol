@@ -17,7 +17,7 @@ contract SwapRegistry is Ownable {
 
     mapping(address => bool) public approvedFactories;
 
-    function toggleFactoryApproval(address factoryAddress, bool toggle) onlyOwner external {
+    function toggleFactoryApproval(address factoryAddress, bool toggle) external onlyOwner {
         approvedFactories[factoryAddress] = toggle;
     }
 

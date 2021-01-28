@@ -27,12 +27,11 @@ contract Swap is Pacemaker, ISwap {
     Status public status;
     mapping(address => uint256) public liquidity;
 
-
     function initialize(
             string memory swapName,
             address[4] memory addresses,// token0, token1, uniswapPoolToken, auctionToken
             uint256[2] memory uint256Values// epoch, tokenId
-        ) override external {
+        ) external override {
         factory = ISwapFactory(msg.sender);
         name = swapName;
         token0 = IERC20(addresses[0]);
@@ -45,12 +44,12 @@ contract Swap is Pacemaker, ISwap {
         status = Status.Active;
     }
 
-    function update(uint256 startEpoch) override external {
+    function update(uint256 startEpoch) external override {
         require(msg.sender == auctionToken.ownerOf(auctionTokenId), "invalid caller");
         epoch = startEpoch;
     }
 
-    function addLiquidity(address token, uint256 amount) override external {
+    function addLiquidity(address token, uint256 amount) external override {
         require((token == address(token0)) || (token == address(token1)), "invalid token");
         liquidity[token] = liquidity[token].add(amount);
     }
