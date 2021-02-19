@@ -8,7 +8,7 @@ import "./BasePool.sol";
     @author Lendroid Foundation
     @notice Inherits the BasePool contract, and contains reward distribution
         logic for the $HRIMP token.
-    @dev Audit certificate : Pending
+    @dev Audit certificate : https://certificate.quantstamp.com/view/lendroid-whalestreet
 */
 
 

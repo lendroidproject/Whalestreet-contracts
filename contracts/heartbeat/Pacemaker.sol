@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 /** @title Pacemaker
     @author Lendroid Foundation
     @notice Smart contract based on which various events in the Protocol take place
-    @dev Audit certificate : Pending
+    @dev Audit certificate : https://certificate.quantstamp.com/view/lendroid-whalestreet
 */
 
 

@@ -12,7 +12,7 @@ import "./LPTokenWrapper.sol";
         on the stake and unstake functions, and includes logic to calculate and
         withdraw rewards.
         This contract is inherited by all Pool contracts.
-    @dev Audit certificate : Pending
+    @dev Audit certificate : https://certificate.quantstamp.com/view/lendroid-whalestreet
 */
 
 

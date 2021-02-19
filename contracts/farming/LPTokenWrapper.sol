@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
     @author Lendroid Foundation
     @notice Tracks the state of the LP Token staked / unstaked both in total
         and on a per account basis.
-    @dev Audit certificate : Pending
+    @dev Audit certificate : https://certificate.quantstamp.com/view/lendroid-whalestreet
 */
 
 
